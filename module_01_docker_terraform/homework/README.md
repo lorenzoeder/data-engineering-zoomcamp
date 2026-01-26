@@ -57,3 +57,66 @@ docker run -it --rm --network=homework_default green_taxi_data:v01 --pg-user=pos
 ```
 
 ## Question 3
+
+```sql
+select count(*)
+from green_taxi_data
+where lpep_pickup_datetime::date >= '2025-11-01'
+  and lpep_pickup_datetime::date < '2025-12-01'
+  and trip_distance <= 1
+;
+```
+
+The answer is 8,007.
+
+## Question 4
+
+```sql
+select lpep_pickup_datetime::date as pickup_date,
+       trip_distance
+from green_taxi_data
+where trip_distance < 100
+order by 2 desc
+limit 1
+;
+```
+
+The answer is 2025-11-14.
+
+## Question 5
+
+```sql
+select pu."Zone" as PU_zone,
+       sum(t.total_amount) as total_amount
+from green_taxi_data t
+left join zones pu
+  on t."PULocationID" = pu."LocationID"
+where t.lpep_pickup_datetime::date = '2025-11-18'
+group by 1
+order by 2 desc
+limit 1
+;
+```
+
+The answer is East Harlem North.
+
+## Question 6
+
+```sql
+select dp."Zone" as DO_zone,
+       t.tip_amount
+from green_taxi_data t
+left join zones pu
+  on t."PULocationID" = pu."LocationID"
+left join zones dp
+  on t."DOLocationID" = dp."LocationID"
+where t.lpep_pickup_datetime::date >= '2025-11-01'
+  and t.lpep_pickup_datetime::date < '2025-12-01'
+  and pu."Zone" = 'East Harlem North'
+order by 2 desc
+limit 1
+;
+;
+```
+
+The answer is Yorkville West.
