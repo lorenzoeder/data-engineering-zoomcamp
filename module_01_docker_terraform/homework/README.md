@@ -120,3 +120,19 @@ limit 1
 ```
 
 The answer is Yorkville West.
+
+## Question 7
+
+The answer is
+
+```shell
+terraform init
+```
+
+```shell
+terraform apply -auto-approve
+```
+
+```shell
+terraform destroy
+```
