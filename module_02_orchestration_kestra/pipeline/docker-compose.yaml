@@ -84,8 +84,8 @@ services:
               path: /tmp/kestra-wd/tmp
           url: http://localhost:8080/
     ports:
-      - "8080:8080"
-      - "8081:8081"
+      - "18080:8080"
+      - "18081:8081"
     depends_on:
       kestra_postgres:
         condition: service_started
