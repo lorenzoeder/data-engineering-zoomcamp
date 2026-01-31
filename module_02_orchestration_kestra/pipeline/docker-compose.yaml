@@ -94,7 +94,7 @@ services:
     image: hashicorp/terraform:latest
     volumes:
       - ./:/workspace # Writeable due to state lock
-      - ./$(GOOGLE_CREDENTIALS):/$(GOOGLE_CREDENTIALS):ro # Readonly credentials
+      - ./${GOOGLE_CREDENTIALS}:/${GOOGLE_CREDENTIALS}:ro # Readonly credentials
     working_dir: /workspace
     command: init
     environment:
