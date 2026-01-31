@@ -83,6 +83,7 @@ services:
             tmpDir:
               path: /tmp/kestra-wd/tmp
           url: http://localhost:18080/
+    env_file: .env_encoded
     ports:
       - "18080:8080"
       - "18081:8081"
