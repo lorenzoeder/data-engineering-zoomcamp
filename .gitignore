@@ -3,6 +3,7 @@
 *.tf
 *.tfstate
 *.tfstate.backup
+*.terraform.lock.hcl
 .terraform/
 
 # Byte-compiled / optimized / DLL files
