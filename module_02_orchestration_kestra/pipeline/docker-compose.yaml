@@ -98,5 +98,4 @@ services:
     working_dir: /workspace
     command: init
     environment:
-      GOOGLE_CREDENTIALS: $(GOOGLE_CREDENTIALS)
-      GOOGLE_APPLICATION_CREDENTIALS: $(GOOGLE_APPLICATION_CREDENTIALS)
+      GOOGLE_APPLICATION_CREDENTIALS: /workspace/$GCP_CREDS
