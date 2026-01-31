@@ -94,5 +94,5 @@ services:
     image: hashicorp/terraform:latest
     volumes:
       - ./:/workspace
-    working_dir: /workspace/data-engineering-zoomcamp/module_02_orchestration_kestra/pipeline
+    working_dir: /workspace
     command: init
