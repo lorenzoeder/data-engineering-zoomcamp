@@ -93,6 +93,9 @@ services:
   terraform:
     image: hashicorp/terraform:latest
     volumes:
-      - ./:/workspace
+      - ./:/workspace:ro
     working_dir: /workspace
     command: init
+    environment:
+      GOOGLE_CREDENTIALS: $(GOOGLE_CREDENTIALS)
+      GOOGLE_APPLICATION_CREDENTIALS: $(GOOGLE_APPLICATION_CREDENTIALS)
