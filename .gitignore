@@ -6,6 +6,7 @@
 *.terraform.lock.hcl
 .terraform/
 .devcontainer/
+gcloud_dir/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
