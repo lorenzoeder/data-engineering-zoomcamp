@@ -5,6 +5,7 @@
 *.tfstate.backup
 *.terraform.lock.hcl
 .terraform/
+.devcontainer/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
