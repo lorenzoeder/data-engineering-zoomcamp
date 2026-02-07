@@ -7,7 +7,7 @@
 .terraform/
 .devcontainer/
 google-cloud-sdk/
-gcp_setup.md
+module_03_data_warehouse/tip_model/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
