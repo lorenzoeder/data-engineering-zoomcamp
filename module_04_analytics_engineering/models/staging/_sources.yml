@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: bq_data
+    description: "Raw data sources for NYC taxi rides"
+    database: project-a2e7442e-cebd-47b3-bd4 # GCP Project ID
+    schema: ny_taxi # BQ dataset name
+    tables:
+      - name: yellow_tripdata
+      - name: green_tripdata
