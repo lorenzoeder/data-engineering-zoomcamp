@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  dbt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: taxi_rides_ny_dbt
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - DBT_PROFILES_DIR=/app
+    command: dbt --version
+
+  dbt-run:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: taxi_rides_ny_dbt_run
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - DBT_PROFILES_DIR=/app
+    command: dbt build
+    profiles_file: "./profiles.yml"
