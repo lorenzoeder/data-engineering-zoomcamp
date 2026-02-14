@@ -58,13 +58,53 @@ if __name__ == "__main__":
     for taxi_type in ["yellow", "green"]:
         download_and_convert_files(taxi_type)
 
-    con = duckdb.connect("taxi_rides_ny.duckdb")
-    con.execute("CREATE SCHEMA IF NOT EXISTS prod")
+    print("\n=== Creating tables in DuckDB ===")
+    try:
+        con = duckdb.connect("taxi_rides_ny.duckdb")
+        print("Connected to taxi_rides_ny.duckdb")
+        
+        con.execute("CREATE SCHEMA IF NOT EXISTS prod")
+        print("Created schema 'prod'")
 
-    for taxi_type in ["yellow", "green"]:
-        con.execute(f"""
-            CREATE OR REPLACE TABLE prod.{taxi_type}_tripdata AS
-            SELECT * FROM read_parquet('data/{taxi_type}/*.parquet', union_by_name=true)
-        """)
+        # Configure DuckDB for limited memory environments
+        con.execute("SET memory_limit='2GB'")
+        con.execute("SET threads=1")
+        print("Memory settings configured: 2GB limit, 1 thread")
 
-    con.close()
+        # Load all data (2019-2020) month by month
+        for taxi_type in ["yellow", "green"]:
+            print(f"\nLoading {taxi_type}_tripdata (2019-2020, month by month)...")
+            
+            first_month = True
+            for year in [2019, 2020]:
+                for month in range(1, 13):
+                    month_str = f"{month:02d}"
+                    filepath = f"data/{taxi_type}/{taxi_type}_tripdata_{year}-{month_str}.parquet"
+                    
+                    if first_month:
+                        con.execute(f"""
+                            CREATE OR REPLACE TABLE prod.{taxi_type}_tripdata AS
+                            SELECT * FROM read_parquet('{filepath}')
+                        """)
+                        first_month = False
+                    else:
+                        con.execute(f"""
+                            INSERT INTO prod.{taxi_type}_tripdata
+                            SELECT * FROM read_parquet('{filepath}')
+                        """)
+                    
+                    row_count = con.execute(f"SELECT COUNT(*) FROM prod.{taxi_type}_tripdata").fetchone()[0]
+                    print(f"  ✓ Loaded {year}-{month_str} | Total rows: {row_count:,}")
+            
+            # Final verification
+            final_count = con.execute(f"SELECT COUNT(*) FROM prod.{taxi_type}_tripdata").fetchone()[0]
+            print(f"✓ {taxi_type}_tripdata complete: {final_count:,} rows (2019-2020)")
+
+        con.close()
+        print("\n✓ All 2019-2020 data loaded successfully!")
+        
+    except Exception as e:
+        print(f"\n✗ Error creating tables: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
