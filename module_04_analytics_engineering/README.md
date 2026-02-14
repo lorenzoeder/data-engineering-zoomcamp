@@ -1,1 +1,0 @@
-# ny_taxi dbt Project
