@@ -1,0 +1,10 @@
+version: 2
+
+models:
+  - name: dim_vendors
+    description: "This is a lookup table for vendor information"
+    columns:
+      - name: vendor_id
+        description: "The unique identifier of each vendor"
+      - name: vendor_name
+        description: "The name of the vendor associated with the trip record"
