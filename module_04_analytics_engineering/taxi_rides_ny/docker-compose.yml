@@ -24,4 +24,4 @@ services:
     environment:
       - DBT_PROFILES_DIR=/app
     command: dbt build
-    profiles_file: "./profiles.yml"
+    profiles_file: "./.dbt/profiles.yml"
