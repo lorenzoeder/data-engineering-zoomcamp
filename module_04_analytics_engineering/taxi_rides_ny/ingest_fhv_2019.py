@@ -1,0 +1,108 @@
+import duckdb
+import requests
+from pathlib import Path
+
+BASE_URL = "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/fhv"
+
+def download_and_convert_files(taxi_type):
+    data_dir = Path("data") / taxi_type
+    data_dir.mkdir(exist_ok=True, parents=True)
+
+    for month in range(1, 13):
+        parquet_filename = f"{taxi_type}_tripdata_2019-{month:02d}.parquet"
+        parquet_filepath = data_dir / parquet_filename
+
+        if parquet_filepath.exists():
+            print(f"Skipping {parquet_filename} (already exists)")
+            continue
+
+        # Download CSV.gz file
+        csv_gz_filename = f"{taxi_type}_tripdata_2019-{month:02d}.csv.gz"
+        csv_gz_filepath = data_dir / csv_gz_filename
+
+        response = requests.get(f"{BASE_URL}/{csv_gz_filename}", stream=True)
+        response.raise_for_status()
+
+        with open(csv_gz_filepath, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+
+        print(f"Converting {csv_gz_filename} to Parquet...")
+        con = duckdb.connect()
+        con.execute(f"""
+            COPY (SELECT * FROM read_csv_auto('{csv_gz_filepath}'))
+            TO '{parquet_filepath}' (FORMAT PARQUET)
+        """)
+        con.close()
+
+        # Remove the CSV.gz file to save space
+        csv_gz_filepath.unlink()
+        print(f"Completed {parquet_filename}")
+
+def update_gitignore():
+    gitignore_path = Path(".gitignore")
+
+    # Read existing content or start with empty string
+    content = gitignore_path.read_text() if gitignore_path.exists() else ""
+
+    # Add data/ if not already present
+    if 'data/' not in content:
+        with open(gitignore_path, 'a') as f:
+            f.write('\n# Data directory\ndata/\n' if content else '# Data directory\ndata/\n')
+
+if __name__ == "__main__":
+    # Update .gitignore to exclude data directory
+    update_gitignore()
+
+    taxi_type = "fhv"
+    download_and_convert_files(taxi_type)
+
+    print("\n=== Creating tables in DuckDB ===")
+    try:
+        con = duckdb.connect("taxi_rides_ny.duckdb")
+        print("Connected to taxi_rides_ny.duckdb")
+        
+        con.execute("CREATE SCHEMA IF NOT EXISTS prod")
+        print("Created schema 'prod'")
+
+        # Configure DuckDB for limited memory environments
+        con.execute("SET memory_limit='2GB'")
+        con.execute("SET threads=1")
+        print("Memory settings configured: 2GB limit, 1 thread")
+
+        # Load all data (2019 only, month by month)
+        taxi_type = "fhv"
+        print(f"\nLoading {taxi_type}_tripdata (2019, month by month)...")
+        
+        first_month = True
+        for month in range(1, 13):
+            month_str = f"{month:02d}"
+            filepath = f"data/{taxi_type}/{taxi_type}_tripdata_2019-{month_str}.parquet"
+            
+            if first_month:
+                con.execute(f"""
+                    CREATE OR REPLACE TABLE prod.{taxi_type}_tripdata AS
+                    SELECT * FROM read_parquet('{filepath}')
+                """)
+                first_month = False
+            else:
+                con.execute(f"""
+                    INSERT INTO prod.{taxi_type}_tripdata
+                    SELECT * FROM read_parquet('{filepath}')
+                """)
+            
+            row_count = con.execute(f"SELECT COUNT(*) FROM prod.{taxi_type}_tripdata").fetchone()[0]
+            print(f"  ✓ Loaded 2019-{month_str} | Total rows: {row_count:,}")
+        
+        # Final verification
+        final_count = con.execute(f"SELECT COUNT(*) FROM prod.{taxi_type}_tripdata").fetchone()[0]
+        print(f"✓ {taxi_type}_tripdata complete: {final_count:,} rows (2019)")
+
+        con.close()
+        print("\n✓ All 2019 FHV data loaded successfully!")
+        
+    except Exception as e:
+        print(f"\n✗ Error creating tables: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
