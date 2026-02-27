@@ -6,22 +6,29 @@ from dlt.sources.rest_api.typing import RESTAPIConfig
 
 
 # if no argument is provided, `access_token` is read from `.dlt/secrets.toml`
-@dlt.source
-def open_library_rest_api_source(access_token: str = dlt.secrets.value):
-    """Define dlt resources from REST API endpoints."""
+@dlt.source(name="open_library_source")
+def open_library_rest_api_source():
     config: RESTAPIConfig = {
         "client": {
-            # TODO set base URL for the REST API
-            "base_url": "https://example.com/v1/",
-            # TODO configure the right authentication method or remove
-            "auth": {"type": "bearer", "token": access_token},
+            "base_url": "https://openlibrary.org/",
         },
         "resources": [
-            # TODO define resources per endpoint
+            {
+                "name": "books",
+                "endpoint": {
+                    "path": "search.json",
+                    "params": {"q": "Game of Thrones", "page": 1, "limit": 100},
+                    "paginator": {
+                        "type": "page_number",
+                        "page_param": "page",
+                        "base_page": 1,
+                        "total_path": "numFound"
+                    },
+                    "data_selector": "docs"
+                }
+            }
         ],
-        # set `resource_defaults` to apply configuration to all endpoints
     }
-
     yield from rest_api_resources(config)
 
 
@@ -39,4 +46,4 @@ pipeline = dlt.pipeline(
 
 if __name__ == "__main__":
     load_info = pipeline.run(open_library_rest_api_source())
-    print(load_info)  # noqa: T201
+    print(load_info)
