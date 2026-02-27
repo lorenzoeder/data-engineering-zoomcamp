@@ -7,7 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "dbt-core>=1.11.6",
     "dbt-duckdb>=1.10.1",
-    "dlt[duckdb]>=1.22.1",
+    "dlt[duckdb,workspace]>=1.22.1",
     "duckdb>=1.4.4",
     "ipykernel>=7.2.0",
     "numpy>=2.4.2",
